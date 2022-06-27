@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "stdio.h": "c",
+        "matrice.h": "c",
+        "time.h": "c",
+        "image.h": "c",
+        "ia.h": "c",
+        "main.h": "c",
+        "stdlib.h": "c",
+        "function.h": "c"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "Enabled"
+}
