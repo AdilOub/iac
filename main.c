@@ -20,12 +20,11 @@ int main() {
         return -1;
     }
     
-    debugAll(&reseau);
 
     printf("CHANGEMENT DE POIDS: \n");
     float newpoidsA[6] = {0.2,0.4,-2,0.4,0.1,2};
     reseau.poids.poidsArray[0].valeurs = newpoidsA;
-    float newpoidsB[2] = {4,2};
+    float newpoidsB[4] = {4,2,6,12};
     reseau.poids.poidsArray[1].valeurs = newpoidsB;
 
     Matrice Devine;
@@ -33,21 +32,25 @@ int main() {
     initMatrice(&Devine, 3, 1);
     Devine.valeurs = devineArray;
 
+
+    debugAll(&reseau);
+
     Matrice resultat;
     guess(&reseau, &Devine, &resultat);
     printf("\nResultat de l'IA:\n");
     printMatrice(&resultat);
 
     Matrice resultatAttendu;
-    float valeursAttendu[1] = {0.5};
+    float valeursAttendu[1] = {0.25};
     initMatrice(&resultatAttendu, 1, 1);
     resultatAttendu.valeurs = valeursAttendu;
     printf("COST:\n");
     float cout = cost(&reseau, &Devine, &resultatAttendu);
     printf("le coup est de: %f\n", cout);
 
-    float *list;
-    poidAndBiaisIntolist(&reseau, list);
+    float *list = NULL;
+    list = poidAndBiaisIntolist(&reseau);
+    print1DArray(list, getNbOfPoidsBiais(&reseau));
     return 0;
 }
 
@@ -60,3 +63,5 @@ int debugAll(Reseau *reseau){
     printf("BIAIS OK !\n");
     return 0;
 }
+
+//cls;gcc main.c function.c matrice.c ia.c -o main;./main

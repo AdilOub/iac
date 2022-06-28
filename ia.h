@@ -55,4 +55,5 @@ int guess(Reseau *reseau, Matrice *activation, Matrice *resultat);
 float cost(Reseau *reseau, Matrice *activation, Matrice *resultatAttendu);
 float costTotalMoyen(Reseau *reseau, Matrice *activationList[], Matrice *resultatAttenduList[], int nbOfResultat);
 
-float poidAndBiaisIntolist(Reseau *reseau, float *list);
+int getNbOfPoidsBiais(Reseau *reseau);
+float* poidAndBiaisIntolist(Reseau *reseau);

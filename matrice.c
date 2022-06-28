@@ -126,7 +126,7 @@ int print1DArray(float array[], int size)
     printf("[");
     for (int i = 0; i < size; i++)
     {
-        printf("%d, ", array[i]);
+        printf("%f, ", array[i]);
     }
     printf("]\n");
     return 0;
@@ -138,6 +138,8 @@ int disposeMatrice(Matrice *matrice){
     free(matrice->valeurs);
     return 0;
 }
+
+
 
 /*
 int initialize2DArray(float **array, Matrice *matrice) {

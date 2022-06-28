@@ -171,8 +171,6 @@ int guess(Reseau *reseau, Matrice *activation, Matrice *resultat){
 
     //calculate next level:
     for(int i = 0; i < NB_OF_COUCHE-1; i++){ //suivant = poids * précendant + biais
-        
-
         Matrice result;
         Matrice result2;
         if(multiplyMatries(&result, &reseau->poids.poidsArray[i], &reseau->couches.MatriceList[i])<0){
@@ -212,15 +210,42 @@ float costTotalMoyen(Reseau *reseau, Matrice *activationList[], Matrice *resulta
     return cout/nbOfResultat;
 }
 
-float poidAndBiaisIntolist(Reseau *reseau, float *list){
+int getNbOfPoidsBiais(Reseau *reseau){
     const int NB_OF_COUCHE = reseau->nbOfCouchesIntermediaire+2;
-    const int NB_OF_MATICE_POIDS = reseau->poids.nbOfPoids;
+
     int nbOfPoids = 0;
-    for(int i = 0; i < NB_OF_MATICE_POIDS; i++){
+    for(int i = 0; i < reseau->poids.nbOfPoids; i++){
         nbOfPoids += reseau->poids.poidsArray[i].colones*reseau->poids.poidsArray[i].lignes;
-        //on a ajouté tout les poids mainteant on ajoute les biais
-        
     }
-    printf("Nb of poids %d.\n", nbOfPoids);
-    return 0;
+    int nbOfBiais = 0;
+    for(int i = 1; i < reseau->biais.nbOfCouches; i++){ //attention on touche pas à la première couche
+        nbOfBiais += reseau->biais.biaisArray[i].lignes; //une seul colone
+    }
+    return nbOfPoids;
+}
+
+float* poidAndBiaisIntolist(Reseau *reseau){
+    
+    const int size = getNbOfPoidsBiais(reseau);
+    float *list = NULL;
+    list = malloc(sizeof(float) * (size));
+    if(list == NULL){
+        printf("Erreur lors de l'allocation de la memoire");
+        return NULL;
+    }
+    
+    int n = 0;
+    for(int i = 0; i<reseau->poids.nbOfPoids; i++){
+        for(int j = 0; j<reseau->poids.poidsArray[i].colones*reseau->poids.poidsArray[i].lignes; j++){
+            list[n] = reseau->poids.poidsArray[i].valeurs[j];
+            n++;
+        }
+        if(i<reseau->poids.nbOfPoids){
+            for(int k=0; k<reseau->biais.biaisArray[i+1].colones* reseau->biais.biaisArray[i+1].lignes; k++){
+                list[n] = reseau->biais.biaisArray[i+1].valeurs[k];
+                n++;
+            }
+        }
+    }
+    return list;
 }
