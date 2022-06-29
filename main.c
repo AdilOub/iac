@@ -10,7 +10,7 @@
 #include "./function.h"
 #include "./ia.h"
 
-#define EPSILON 25 //TODO CHANGE
+#define EPSILON 0.0001 //TODO CHANGE
 
 int main() {
     printf("Welcome !!\n");
@@ -23,12 +23,14 @@ int main() {
     }
     
 
-    printf("CHANGEMENT DE POIDS: \n");
+    printf("CHANGEMENT DE POIDS:\n");
     float newpoidsA[6] = {0.2,0.4,-2,0.4,0.1,2};
     reseau.poids.poidsArray[0].valeurs = newpoidsA;
     float newpoidsB[4] = {4,2,6,12};
     reseau.poids.poidsArray[1].valeurs = newpoidsB;
 
+
+    #pragma region debug
     Matrice Devine;
     float devineArray[3] = {0.1,0.8,0.25};
     initMatrice(&Devine, 3, 1);
@@ -42,28 +44,43 @@ int main() {
     printf("\nResultat de l'IA:\n");
     printMatrice(&resultat);
 
-    Matrice resultatAttendu;
+    Matrice resultatAttenduDebug;
     float valeursAttendu[1] = {0.25};
-    initMatrice(&resultatAttendu, 1, 1);
-    resultatAttendu.valeurs = valeursAttendu;
+    initMatrice(&resultatAttenduDebug, 1, 1);
+    resultatAttenduDebug.valeurs = valeursAttendu;
     printf("COST:\n");
-    float cout = cost(&reseau, &Devine, &resultatAttendu);
-    printf("le coup est de: %f\n", cout);
+    float coutAVANT = cost(&reseau, &Devine, &resultatAttenduDebug);
+    printf("le coup est de: %f\n", coutAVANT);
+    #pragma endregion debug
 
-    float *list = NULL;
-    list = poidAndBiaisIntolist(&reseau);
-    print1DArray(list, getNbOfPoidsBiais(&reseau));
-    printf("\n");
 
-    float *oldPoidsAndBiais = NULL;
-    oldPoidsAndBiais = createCloneOfValues(&reseau, EPSILON, 2);
-    
-    printf("reseau:\n");
+    Matrice activation1;
+    float activation1Array[3] = {0.1,0.8,0.25};
+    initMatrice(&activation1, 3, 1);
+    activation1.valeurs = activation1Array;
+
+    Matrice* activationList[1] = {&activation1};
+
+    printf("\n\nRESAU AVANT TRAINING:\n");
     debugAll(&reseau);
+    printf("\nFIN AVANT -----------\n");
 
 
+    Matrice resultatAttendu;
+    float resultatAttenduValue[1] = {0.333};
+    initMatrice(&resultatAttendu, 1, 1);
+    Matrice* resultatAttenduList[1] = {&resultatAttendu};
+    
+
+    train(&reseau, EPSILON,  activationList, resultatAttenduList, 1, 100, 0.05);
+
+    printf("\n\nRESAU APRES TRAINING:\n");
+    debugAll(&reseau);
+    printf("\n-----------\n");
 
 
+    float coutAPRES = cost(&reseau, &Devine, &resultatAttenduDebug);
+    printf("COUP AVANT %f, coutAPRES %f", coutAVANT, coutAPRES);
     return 0;
 }
 

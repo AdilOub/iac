@@ -177,7 +177,14 @@ int guess(Reseau *reseau, Matrice *activation, Matrice *resultat){
             printf("\nErreur lors de la multiplication de la couche %d\n", i);
             return -1;
         }
-        addMatrice(&result2, &result, &reseau->biais.biaisArray[i+1]);
+
+
+        //printf("\nDIMENSION MATICE BIAIS: L %d C %d\n", reseau->biais.biaisArray[i+1].lignes, reseau->biais.biaisArray[i+1].colones); //TODO REMOVE DEBUG
+        //on ajoute les biais
+        if(addMatrice(&result2, &result, &reseau->biais.biaisArray[i+1])<0){ //TODO FIX: IL Y A 4 MATRICE
+            printf("Erreur lors de l'addition des matrices pour guess.\n");
+            return -1;
+        }
         reseau->couches.MatriceList[i+1] = sigmoidMatrice(&result2);
     }
     initMatrice(resultat, reseau->nbNeuronneCoucheResultat, 1);
@@ -188,7 +195,10 @@ int guess(Reseau *reseau, Matrice *activation, Matrice *resultat){
 float cost(Reseau *reseau, Matrice *activation, Matrice *resultatAttendu){
     const int NB_OF_COUCHE = reseau->nbOfCouchesIntermediaire + 2;
     Matrice resultatObtenue;
-    guess(reseau, activation, &resultatObtenue);
+    if(guess(reseau, activation, &resultatObtenue)<0){
+        printf("Impossible de deviner, donc on peut pas calculer le coup.\n");
+        return -1;
+    }
     if(resultatAttendu->colones != resultatObtenue.colones || resultatAttendu->lignes != resultatObtenue.lignes){
         printf("Impossible de calculer le coup, les deux matrices n'ont pas la meme taille.\n");
         return -1;
@@ -202,6 +212,19 @@ float cost(Reseau *reseau, Matrice *activation, Matrice *resultatAttendu){
     return sumOfMatrice(&coutSquared);
 }
 
+float costTotalMoyen(Reseau *reseau, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
+    float coutT = 0;
+    for(int i = 0; i < nbOfResultat; i++){
+        float cout = cost(reseau, activationList[i], resultatAttenduList[i]);
+        if(cout<0){
+            printf("Erreur lors du calcule du coup n%d.\n",i);
+            return -1;
+        }
+        coutT += cout;
+    }
+    return coutT/nbOfResultat;
+}
+
 float* createCloneOfValues(Reseau *reseau, float h, int index){
     float* listPoidBiaisWithoutChange = NULL;
     float* listPoidBiais = NULL;
@@ -212,7 +235,7 @@ float* createCloneOfValues(Reseau *reseau, float h, int index){
     return listPoidBiaisWithoutChange;
 }
 
-float derivateIndex(Reseau *reseau, float *list, float h, int index, Matrice *activationList[], Matrice *resultatAttenduList[], int nbOfResultat){
+float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
     const int NCA = reseau->nbNeuronneCoucheActivation;
     const int NCI = reseau->nbNeuronneParCoucheIntermediaire;
     const int NCR = reseau->nbNeuronneCoucheResultat;
@@ -226,23 +249,54 @@ float derivateIndex(Reseau *reseau, float *list, float h, int index, Matrice *ac
     return (coutPlusH-cout)/h;
 }
 
-Matrice derivateAll(Reseau *reseau, float *list, float h, Matrice *activationList[], Matrice *resultatAttenduList[], int nbOfResultat){
+Matrice derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
     const int size = getNbOfPoidsBiais(reseau);
     Matrice gradient;
     initMatrice(&gradient, size, 1);
     for(int i = 0; i<size; i++){
-        
+        gradient.valeurs[i] = -derivateIndex(reseau, h, i, activationList, resultatAttenduList, nbOfResultat);
     }
+    return gradient;
+}
+
+int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat, int nbOfTraining, float step){
+    //on calcule le gradient et on change les params de step, puis on recommence jusqu'a ce qu'on dépasse nbOftraining
+    const int NCA = reseau->nbNeuronneCoucheActivation;
+    const int NCI = reseau->nbNeuronneParCoucheIntermediaire;
+    const int NCR = reseau->nbNeuronneCoucheResultat;
+    const int nbCI = reseau->nbOfCouchesIntermediaire;
+    for(int trainingLoop = 0; trainingLoop < nbOfTraining; trainingLoop++){
+        printf("Entrainement %d/%d.\n", trainingLoop, nbOfTraining);
+        //on calcule le gradient que l'on multiplie par step
+        Matrice gradient;
+        gradient = derivateAllAndGetOppositOfGradient(reseau, h, activationList, resultatAttenduList, nbOfResultat);
+        multiplyByFloat(&gradient, step);
+
+        //on transforme tout les poids et biais en une matrice colone
+        float* listPoidsEtBiais = poidAndBiaisIntolist(reseau);
+        Matrice allValue;
+        initMatrice(&allValue, getNbOfPoidsBiais(reseau), 1);
+        allValue.valeurs = listPoidsEtBiais;
+
+        //on additionne les deux matrices
+        Matrice result;
+        if(addMatrice(&result, &allValue, &gradient)<0){
+            printf("Erreur lors de l'addition des matrices poidsEtBiais et Gradient");
+            return -1;
+        }
+
+        //on enrengistre les nouveaux poids et biais
+        registerListInReseau(reseau, result.valeurs, NCA, NCI, nbCI, NCR);
+
+        //on libère la RAM !
+        disposeMatrice(&gradient);
+        disposeMatrice(&allValue);
+        disposeMatrice(&result);
+    }
+    printf("Fin de l'entrainement !\n");
 }
 
 
-float costTotalMoyen(Reseau *reseau, Matrice *activationList[], Matrice *resultatAttenduList[], int nbOfResultat){
-    float cout = 0;
-    for(int i = 0; i < nbOfResultat; i++){
-        cout += cost(reseau, activationList[i], resultatAttenduList[i]);
-    }
-    return cout/nbOfResultat;
-}
 
 float deriveCostTotal(Reseau *reseau, float h, int param){
     float* listPoidsBiais = NULL;
@@ -308,6 +362,7 @@ float* slice(float *list, int min, int max){
 }
 
 int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCoucheInter, int NCR){ //NCA = nombre de neuronne dans la couche d'activation...
+    //printf("DIMENSION DEBUT DE MATRICE BIAIS 1: L %d C %d\n", reseau->biais.biaisArray[1].lignes, reseau->biais.biaisArray[1].colones); //TODO REMOVE DEBUG
     int index = 0;
     Matrice poidsA;
     initMatrice(&poidsA, NCI, NCA);
@@ -315,7 +370,7 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
     index += NCI*NCA;
 
     Matrice biaisI1;
-    initMatrice(&biaisI1, NCI, NCI);
+    initMatrice(&biaisI1, NCI, 1);
     biaisI1.valeurs = slice(list, index, index+NCI);
     index+=NCI;
 
@@ -329,8 +384,8 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
             printf("Erreur lors de l'allocation de mémoire pour la liste des matrices poids ou biais (in registerListInReseau).\n");
             return -1;
         }
-        memset(poidsInterList, -1, sizeof(Matrice) * nbCoucheInter); //TODO SET 0 or delete
-        memset(biaisInterList, -1, sizeof(Matrice) * nbCoucheInter); //TODO SET 0 or delete
+        memset(poidsInterList, 0, sizeof(Matrice) * nbCoucheInter); //TODO SET 0 or delete
+        memset(biaisInterList, 0, sizeof(Matrice) * nbCoucheInter); //TODO SET 0 or delete
         for(int i = 0; i<nbCoucheInter; i++){
             
             Matrice tempP;
@@ -368,6 +423,7 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
     }
     reseau->poids.poidsArray[reseau->poids.nbOfPoids-1] = poidsFinal;
     reseau->biais.biaisArray[reseau->biais.nbOfCouches-1] = biaisFinal;
+    //printf("DIMENSION DE MATRICE BIAIS 1: L %d C %d\n", reseau->biais.biaisArray[1].lignes, reseau->biais.biaisArray[1].colones); //TODO REMOVE DEBUG
     return 0;
 }
 

@@ -29,6 +29,8 @@ float sumOfMatrice(Matrice *A);
 int multiplyByFloat(Matrice *matrice, float k);
 
 int print1DArray(float array[], int size);
+int multiplyListByFloat(float* list, float k, int size);
+//float* matriceColoneToList(Matrice *matriceColone);
 
 int disposeMatrice(Matrice *matrice);
 

@@ -53,7 +53,7 @@ int printBiais(Reseau *reseau);
 
 int guess(Reseau *reseau, Matrice *activation, Matrice *resultat);
 float cost(Reseau *reseau, Matrice *activation, Matrice *resultatAttendu);
-float costTotalMoyen(Reseau *reseau, Matrice *activationList[], Matrice *resultatAttenduList[], int nbOfResultat);
+float costTotalMoyen(Reseau *reseau, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat);
 
 int getNbOfPoidsBiais(Reseau *reseau);
 float* poidAndBiaisIntolist(Reseau *reseau);
@@ -64,4 +64,7 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
 
 float* slice(float *list, int min, int max);
 
-float derivateIndex(float *list, float h, int index);
+float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat);
+Matrice derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat);
+
+int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat, int nbOfTraining, float step);

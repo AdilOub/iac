@@ -146,6 +146,33 @@ int multiplyByFloat(Matrice *matrice, float k){
     return 0;
 }
 
+int multiplyListByFloat(float* list, float k, int size){
+    for(int i = 0; i < size; i++){
+        list[i] = k * list[i];
+    }
+    return 0;
+}
+
+
+/* DEUXIEME FOIS MAIS J'EN AI PAS BESOIN: MATRIE->value !!!!
+float* matriceColoneToList(Matrice *matriceColone){
+    if(matriceColone->colones>1){
+        printf("Erreur: impossible de convertir la matrice colone en liste: la matrice n'est pas une colone.\n");
+        return NULL;
+    }
+    const int size = matriceColone->lignes;
+    float* list = NULL;
+    list = malloc(sizeof(float) * size);
+    if(list == NULL){
+        printf("Erreur: impossible d'allouer de la mémoire pour convertir la matrice en liste.\n");
+        return NULL;
+    }
+    for(int i = 0; i < size; i++){
+    }
+}
+*/
+
+
 /*
 int initialize2DArray(float **array, Matrice *matrice) {
     *array = malloc(sizeof(float) * matrice->lignes * matrice->colones);
