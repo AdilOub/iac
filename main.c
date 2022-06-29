@@ -10,25 +10,34 @@
 #include "./function.h"
 #include "./ia.h"
 
-#define EPSILON 0.0001 //TODO CHANGE
+#define EPSILON 0.00001 //TODO CHANGE
 
 int main() {
     printf("Welcome !!\n");
     Reseau reseau;
 
 
-    if(initReseau(&reseau, 1, 3, 2, 1) < 0){
+    if(initReseau(&reseau, 2, 3, 2, 1) < 0){
         printf("Error !");
         return -1;
     }
     
 
     printf("CHANGEMENT DE POIDS:\n");
-    float newpoidsA[6] = {0.2,0.4,-2,0.4,0.1,2};
+    float newpoidsA[6] = {1,0.1,-10,0.10,0.111,111};
     reseau.poids.poidsArray[0].valeurs = newpoidsA;
-    float newpoidsB[4] = {4,2,6,12};
+    float newpoidsB[4] = {2,2,2,2};
     reseau.poids.poidsArray[1].valeurs = newpoidsB;
+    float newpoidsFinal[4] = {40,-40};
+    reseau.poids.poidsArray[2].valeurs = newpoidsFinal;
 
+    float biaisC2[2] = {2,2};
+    float biaisC3[2] = {3,3};
+    float biaisC4[1] = {4};
+
+    reseau.biais.biaisArray[1].valeurs = biaisC2;
+    reseau.biais.biaisArray[2].valeurs = biaisC3;
+    reseau.biais.biaisArray[3].valeurs = biaisC4;
 
     #pragma region debug
     Matrice Devine;
@@ -52,18 +61,8 @@ int main() {
     float coutAVANT = cost(&reseau, &Devine, &resultatAttenduDebug);
     printf("le coup est de: %f\n", coutAVANT);
     #pragma endregion debug
+    
 
-
-    Matrice activation1;
-    float activation1Array[3] = {0.1,0.8,0.25};
-    initMatrice(&activation1, 3, 1);
-    activation1.valeurs = activation1Array;
-
-    Matrice* activationList[1] = {&activation1};
-
-    printf("\n\nRESAU AVANT TRAINING:\n");
-    debugAll(&reseau);
-    printf("\nFIN AVANT -----------\n");
 
 
     Matrice resultatAttendu;
@@ -71,8 +70,14 @@ int main() {
     initMatrice(&resultatAttendu, 1, 1);
     Matrice* resultatAttenduList[1] = {&resultatAttendu};
     
+    Matrice activation1;
+    float activation1Array[3] = {0.1,0.8,0.25};
+    initMatrice(&activation1, 3, 1);
+    activation1.valeurs = activation1Array;
 
-    train(&reseau, EPSILON,  activationList, resultatAttenduList, 1, 100, 0.05);
+    Matrice* activationList[1] = {&activation1};
+
+    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 250, 0.025);
 
     printf("\n\nRESAU APRES TRAINING:\n");
     debugAll(&reseau);
