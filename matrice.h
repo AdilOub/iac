@@ -38,4 +38,3 @@ int disposeMatrice(Matrice *matrice);
 int initialize2DArray(float **array, Matrice *matrice);
 int matriceTo2DArray(Matrice *matrice, float **array);
 */
-

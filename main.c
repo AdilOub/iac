@@ -10,12 +10,29 @@
 #include "./function.h"
 #include "./ia.h"
 
+
+
+#ifdef __linux__
+#include <sys/resource.h>
+long getMemoryUsage(){
+    struct rusage myUsage;
+
+    getrusage(RUSAGE_SELF, &myUsage);
+    return myUsage.ru_maxrss;
+}
+#endif
+
 #define EPSILON 0.0000001 //TODO CHANGE
+
+
+
 
 int main() {
     printf("Welcome !!\n");
+    #ifdef __linux__
+    printf("\nMemory usage: %ld", getMemoryUsage());
+    #endif
     Reseau reseau;
-
 
     if(initReseau(&reseau, 2, 3, 2, 1) < 0){
         printf("Error !");
@@ -77,7 +94,7 @@ int main() {
 
     Matrice* activationList[1] = {&activation1};
 
-    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 100, 0.001);
+    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 200, 0.001);
 
     printf("\n\nRESAU APRES TRAINING:\n");
     debugAll(&reseau);
@@ -86,6 +103,9 @@ int main() {
 
     float coutAPRES = cost(&reseau, &Devine, &resultatAttenduDebug);
     printf("COUP AVANT %f, coutAPRES %f", coutAVANT, coutAPRES);
+    #ifdef __linux__
+    printf("\nMemory usage: %ld", getMemoryUsage());
+    #endif
     return 0;
 }
 

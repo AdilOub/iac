@@ -6,6 +6,7 @@
 
 #include "./matrice.h"
 
+
 int printMatrice(Matrice *matrice)
 {
     float *valeurs = matrice->valeurs;

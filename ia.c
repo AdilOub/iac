@@ -7,6 +7,7 @@
 #include "./ia.h"
 #include "./function.h"
 
+
 int initReseau(Reseau *reseau, int nbCI, int nbNCA, int nbNCI, int nbNCR){
     Poids poids;
     Biais biais;
