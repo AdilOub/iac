@@ -10,7 +10,7 @@
 #include "./function.h"
 #include "./ia.h"
 
-#define EPSILON 0.00001 //TODO CHANGE
+#define EPSILON 0.0000001 //TODO CHANGE
 
 int main() {
     printf("Welcome !!\n");
@@ -28,7 +28,7 @@ int main() {
     reseau.poids.poidsArray[0].valeurs = newpoidsA;
     float newpoidsB[4] = {2,2,2,2};
     reseau.poids.poidsArray[1].valeurs = newpoidsB;
-    float newpoidsFinal[4] = {40,-40};
+    float newpoidsFinal[4] = {-5,4};
     reseau.poids.poidsArray[2].valeurs = newpoidsFinal;
 
     float biaisC2[2] = {2,2};
@@ -77,7 +77,7 @@ int main() {
 
     Matrice* activationList[1] = {&activation1};
 
-    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 250, 0.025);
+    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 1000, 0.001);
 
     printf("\n\nRESAU APRES TRAINING:\n");
     debugAll(&reseau);

@@ -214,7 +214,13 @@ float cost(Reseau *reseau, Matrice *activation, Matrice *resultatAttendu){
     subMatrice(&coutSub, resultatAttendu, &resultatObtenue);
     squareMatrcie(&coutSquared, &coutSub);
     disposeMatrice(&coutSub);
-    return sumOfMatrice(&coutSquared);
+    
+    float somme = sumOfMatrice(&coutSquared);
+
+    disposeMatrice(&coutSub);
+    disposeMatrice(&coutSquared);
+    
+    return somme;
 }
 
 float costTotalMoyen(Reseau *reseau, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
@@ -306,7 +312,7 @@ int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatA
 }
 
 
-
+/*
 float deriveCostTotal(Reseau *reseau, float h, int param){
     float* listPoidsBiais = NULL;
     listPoidsBiais = poidAndBiaisIntolist(reseau);
@@ -315,7 +321,7 @@ float deriveCostTotal(Reseau *reseau, float h, int param){
         return -1;
     }
 
-}
+}*/
 
 int getNbOfPoidsBiais(Reseau *reseau){
     const int NB_OF_COUCHE = reseau->nbOfCouchesIntermediaire+2;
@@ -382,8 +388,8 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
     biaisI1.valeurs = slice(list, index, index+NCI);
     index+=NCI;
 
-        Matrice *biaisInterList = NULL;
-        Matrice *poidsInterList = NULL;
+    Matrice *biaisInterList = NULL;
+    Matrice *poidsInterList = NULL;
     if(nbCoucheInter>1){
 
         biaisInterList = malloc(sizeof(Matrice) * nbCoucheInter);
@@ -432,7 +438,21 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
     reseau->poids.poidsArray[reseau->poids.nbOfPoids-1] = poidsFinal;
     reseau->biais.biaisArray[reseau->biais.nbOfCouches-1] = biaisFinal;
 
+    //free ram !
+    disposeMatrice(&poidsA);
+    disposeMatrice(&biaisI1);
+    for(int i = 0; i<nbCoucheInter; i++){
+            disposeMatrice(&poidsInterList[i]);
+            disposeMatrice(&biaisInterList[i]);
+    }
+    free(biaisInterList);
+    free(poidsInterList);
+    disposeMatrice(&poidsFinal);
+    disposeMatrice(&biaisFinal);
+
     return 0;
 }
 
 //TODO REPLACE MEMSET WITH MY MEMSET RANDOM !
+//TODO REGLER LA MEMORY LEAK QUI EMPECHE DE TROP LOOP
+//TODO ADD FUNCTION TO LOAD POIDS ET BIAIS
