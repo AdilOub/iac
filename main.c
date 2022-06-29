@@ -94,10 +94,10 @@ int main() {
 
     Matrice* activationList[1] = {&activation1};
 
-    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 200, 0.001);
+    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 2, 0.001);
 
     printf("\n\nRESAU APRES TRAINING:\n");
-    debugAll(&reseau);
+    //debugAll(&reseau);
     printf("\n-----------\n");
 
 

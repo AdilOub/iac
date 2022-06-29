@@ -249,31 +249,35 @@ float* createCloneOfValues(Reseau *reseau, float h, int index){
     return listPoidBiaisWithoutChange;
 }
 
-float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
-    const int NCA = reseau->nbNeuronneCoucheActivation;
-    const int NCI = reseau->nbNeuronneParCoucheIntermediaire;
-    const int NCR = reseau->nbNeuronneCoucheResultat;
-    const int nbCI = reseau->nbOfCouchesIntermediaire;
+float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){ //no leak inside
 
     float* oldValue = createCloneOfValues(reseau, h, index);
     float coutPlusH = costTotalMoyen(reseau, activationList, resultatAttenduList, nbOfResultat);
+
     if(coutPlusH<0){
         printf("Erreur dans la derive, costTotalMoyen negatif");
         return -1;
     }
-    registerListInReseau(reseau, oldValue, NCA, NCI, nbCI, NCR);
-    float cout = costTotalMoyen(reseau, activationList, resultatAttenduList, nbOfResultat);
+    
 
+    registerListInReseau(reseau, oldValue, reseau->nbNeuronneCoucheActivation, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbOfCouchesIntermediaire, reseau->nbNeuronneCoucheResultat);
+
+    float cout = costTotalMoyen(reseau, activationList, resultatAttenduList, nbOfResultat);
     return (coutPlusH-cout)/h;
 }
 
 Matrice derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
     const int size = getNbOfPoidsBiais(reseau);
+
     Matrice gradient;
+    
     initMatrice(&gradient, size, 1);
+    
+    
     for(int i = 0; i<size; i++){
-        gradient.valeurs[i] = -derivateIndex(reseau, h, i, activationList, resultatAttenduList, nbOfResultat);
+        gradient.valeurs[i] = -derivateIndex(reseau, h, i, activationList, resultatAttenduList, nbOfResultat); //MEMORY LEACK HERE !! TODO FIX
     }
+    
     return gradient;
 }
 
@@ -287,14 +291,25 @@ int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatA
         printf("Entrainement %d/%d.\n", trainingLoop+1, nbOfTraining);
         //on calcule le gradient que l'on multiplie par step
         Matrice gradient;
-        gradient = derivateAllAndGetOppositOfGradient(reseau, h, activationList, resultatAttenduList, nbOfResultat);
+        #ifdef __linux__
+        printf("\nMemory usage before gradient: %ld", getMemoryUsage());
+        #endif
+        gradient = derivateAllAndGetOppositOfGradient(reseau, h, activationList, resultatAttenduList, nbOfResultat);         //LA FUITE DE MEMOIRE EST ICI
+
         multiplyByFloat(&gradient, step);
 
+
+
+        
         //on transforme tout les poids et biais en une matrice colone
         float* listPoidsEtBiais = poidAndBiaisIntolist(reseau);
+        
         Matrice allValue;
         initMatrice(&allValue, getNbOfPoidsBiais(reseau), 1);
+        
         allValue.valeurs = listPoidsEtBiais;
+
+
 
         //on additionne les deux matrices
         Matrice result;
@@ -305,11 +320,14 @@ int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatA
 
         //on enrengistre les nouveaux poids et biais
         registerListInReseau(reseau, result.valeurs, NCA, NCI, nbCI, NCR);
-
-        //on libère la RAM !
+        //on libère la RAM ! TODO: CA NE LIBERE RIEN d'après getMemoryUsage
         disposeMatrice(&gradient);
         disposeMatrice(&allValue);
         disposeMatrice(&result);
+        #ifdef __linux__
+        printf("\nMemory usage after free: %ld\n", getMemoryUsage());
+        #endif
+
     }
     printf("Fin de l'entrainement !\n");
 }
