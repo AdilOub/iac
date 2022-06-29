@@ -57,3 +57,11 @@ float costTotalMoyen(Reseau *reseau, Matrice *activationList[], Matrice *resulta
 
 int getNbOfPoidsBiais(Reseau *reseau);
 float* poidAndBiaisIntolist(Reseau *reseau);
+
+float* createCloneOfValues(Reseau *reseau, float h, int index);
+float deriveCostTotal(Reseau *reseau, float h, int param);
+int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCoucheInter, int NCR);
+
+float* slice(float *list, int min, int max);
+
+float derivateIndex(float *list, float h, int index);

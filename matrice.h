@@ -26,6 +26,7 @@ int addMatrice(Matrice *result, Matrice *A, Matrice *B);
 int subMatrice(Matrice *result, Matrice *A, Matrice *B);
 int squareMatrcie(Matrice *result, Matrice *A);
 float sumOfMatrice(Matrice *A);
+int multiplyByFloat(Matrice *matrice, float k);
 
 int print1DArray(float array[], int size);
 

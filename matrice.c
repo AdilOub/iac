@@ -139,7 +139,12 @@ int disposeMatrice(Matrice *matrice){
     return 0;
 }
 
-
+int multiplyByFloat(Matrice *matrice, float k){
+    for(int i = 0; i<matrice->colones*matrice->lignes;i++){
+        matrice->valeurs[i] = k * matrice->valeurs[i];
+    }
+    return 0;
+}
 
 /*
 int initialize2DArray(float **array, Matrice *matrice) {

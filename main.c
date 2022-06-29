@@ -10,6 +10,8 @@
 #include "./function.h"
 #include "./ia.h"
 
+#define EPSILON 25 //TODO CHANGE
+
 int main() {
     printf("Welcome !!\n");
     Reseau reseau;
@@ -28,7 +30,7 @@ int main() {
     reseau.poids.poidsArray[1].valeurs = newpoidsB;
 
     Matrice Devine;
-    float devineArray[3] = {0.0,0.1,0.4};
+    float devineArray[3] = {0.1,0.8,0.25};
     initMatrice(&Devine, 3, 1);
     Devine.valeurs = devineArray;
 
@@ -51,16 +53,29 @@ int main() {
     float *list = NULL;
     list = poidAndBiaisIntolist(&reseau);
     print1DArray(list, getNbOfPoidsBiais(&reseau));
+    printf("\n");
+
+    float *oldPoidsAndBiais = NULL;
+    oldPoidsAndBiais = createCloneOfValues(&reseau, EPSILON, 2);
+    
+    printf("reseau:\n");
+    debugAll(&reseau);
+
+
+
+
     return 0;
 }
 
 int debugAll(Reseau *reseau){
+    printf("Debug:\n");
     printCouche(reseau);
     printf("COUCHE OK !\n");
     printPoids(reseau);
     printf("POIDS OK !\n");
     printBiais(reseau);
     printf("BIAIS OK !\n");
+    printf("Fin du debug.\n");
     return 0;
 }
 
