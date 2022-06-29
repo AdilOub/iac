@@ -77,7 +77,7 @@ int main() {
 
     Matrice* activationList[1] = {&activation1};
 
-    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 1000, 0.001);
+    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 100, 0.001);
 
     printf("\n\nRESAU APRES TRAINING:\n");
     debugAll(&reseau);
@@ -102,3 +102,4 @@ int debugAll(Reseau *reseau){
 }
 
 //cls;gcc main.c function.c matrice.c ia.c -o main;./main
+//TODO BUG AVEC TROP DE BOUCLE + NAN

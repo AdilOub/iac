@@ -213,13 +213,12 @@ float cost(Reseau *reseau, Matrice *activation, Matrice *resultatAttendu){
     Matrice coutSquared;
     subMatrice(&coutSub, resultatAttendu, &resultatObtenue);
     squareMatrcie(&coutSquared, &coutSub);
-    disposeMatrice(&coutSub);
-    
+        
     float somme = sumOfMatrice(&coutSquared);
 
     disposeMatrice(&coutSub);
     disposeMatrice(&coutSquared);
-    
+
     return somme;
 }
 
@@ -243,6 +242,9 @@ float* createCloneOfValues(Reseau *reseau, float h, int index){
     listPoidBiais = poidAndBiaisIntolist(reseau);
     listPoidBiais[index] += h;
     registerListInReseau(reseau, listPoidBiais, reseau->nbNeuronneCoucheActivation, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbOfCouchesIntermediaire, reseau->nbNeuronneCoucheResultat);
+    
+    free(listPoidBiais);
+
     return listPoidBiaisWithoutChange;
 }
 
@@ -380,7 +382,7 @@ int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCo
     int index = 0;
     Matrice poidsA;
     initMatrice(&poidsA, NCI, NCA);
-    poidsA.valeurs = slice(list, 0, 1 + NCI*NCA); //1+ car la dernière est exclu (j'ai pas compris mais ça marche)
+    poidsA.valeurs = slice(list, 0, 1 + NCI*NCA); //1+ car la dernière est exclu
     index += NCI*NCA;
 
     Matrice biaisI1;
