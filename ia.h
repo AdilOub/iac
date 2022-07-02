@@ -43,6 +43,8 @@ struct Reseau{
 
 
 int initReseau(Reseau *reseau, int nbCI, int nbNCA, int nbNCI, int nbNCR);
+int initReseauWithFree(Reseau *reseau, int nbCI, int nbNCA, int nbNCI, int nbNCR);
+
 int initCouches(Reseau *reseau, int size);
 int initPoids(Reseau *reseau, int size);
 int initBiais(Reseau *reseau, int size);
@@ -58,13 +60,13 @@ float costTotalMoyen(Reseau *reseau, Matrice* *activationList, Matrice* *resulta
 int getNbOfPoidsBiais(Reseau *reseau);
 float* poidAndBiaisIntolist(Reseau *reseau);
 
-float* createCloneOfValues(Reseau *reseau, float h, int index);
+int createCloneOfValues(Reseau *reseau, float h, int index);
 float deriveCostTotal(Reseau *reseau, float h, int param);
 int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCoucheInter, int NCR);
 
-float* slice(float *list, int min, int max);
+int slice(float *list, int min, int max, float *sliced);
 
 float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat);
-Matrice derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat);
+int derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat, Matrice *gradient, int sizeOfGradient);
 
 int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat, int nbOfTraining, float step);

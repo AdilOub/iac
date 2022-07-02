@@ -24,101 +24,164 @@ int initReseau(Reseau *reseau, int nbCI, int nbNCA, int nbNCI, int nbNCR){
     return 0;
 }
 
-#pragma region sub_init
+int initReseauWithFree(Reseau *reseau, int nbCI, int nbNCA, int nbNCI, int nbNCR){
+    const int NB_COUCHE_TOTAL = 2 + nbCI; //CA + nbCI + CR
 
-int initCouches(Reseau *reseau, int nbOfCouche){
-    Couches couches;
-    couches.nbOfCouches = nbOfCouche;
+    //printf("clearing...\n");
+    //clear all matrice in reseau
+    for(int i = 0; i<reseau->couches.nbOfCouches;i++){
+        //disposeMatrice(&reseau->couches.MatriceList[i]);
+        //disposeMatrice(&reseau->biais.biaisArray[i]);
+    }
+    for(int i = 0; i <reseau->poids.nbOfPoids; i++){
+        //disposeMatrice(&reseau->poids.poidsArray[i]);
+    }
 
+    free(reseau->couches.MatriceList);
+    free(reseau->poids.poidsArray);
+    free(reseau->biais.biaisArray);
 
-    Matrice *matriceList = NULL;
-    matriceList = malloc(sizeof(Matrice) * nbOfCouche);
-    if(matriceList == NULL){
+    
+    //MEMORY LEAK FINAL PAS DANS LES MALLOC MAIS DANS LES MATRICE INIT !!!
+    //printf("MEM 0: %ld\n", getMemoryUsage());
+    initCouches(reseau, NB_COUCHE_TOTAL);
+    initPoids(reseau, NB_COUCHE_TOTAL);
+    initBiais(reseau, NB_COUCHE_TOTAL);
+    //printf("MEM 1: %ld\n", getMemoryUsage());
+    return 0;
+}
+
+#pragma region sub_init_nomalloc
+/*
+int initCouchesNoMalloc(Reseau *reseau, int nbOfCouche){
+    //free(reseau->couches.MatriceList); //au cas ou...
+    reseau->couches.MatriceList = NULL;
+    reseau->couches.nbOfCouches = nbOfCouche;
+    reseau->couches.MatriceList = malloc(sizeof(Matrice) * nbOfCouche);
+    if(reseau->couches.MatriceList == NULL){
         printf("Erreur lors de l'allocation de mémoire pour la liste des matrices (couches)");
         return -1;
     }
-    memset(matriceList, 0, sizeof(Matrice) * nbOfCouche);
+    memset(reseau->couches.MatriceList, 0, sizeof(Matrice) * nbOfCouche);
+    initMatriceNoMalloc(&(reseau->couches.MatriceList[0]), reseau->nbNeuronneCoucheActivation, 1);
+    for(int i = 1; i < nbOfCouche-1; i++){
+        initMatriceNoMalloc(&(reseau->couches.MatriceList[i]), reseau->nbNeuronneParCoucheIntermediaire, 1);
+    }
+    initMatriceNoMalloc(&(reseau->couches.MatriceList[nbOfCouche-1]), reseau->nbNeuronneCoucheResultat, 1);
+    return 0;
+}
 
-    Matrice activation;
-    initMatrice(&activation, reseau->nbNeuronneCoucheActivation, 1);
-    matriceList[0] = activation;
+int initPoidsNoMalloc(Reseau *reseau, int nbOfCouche){
+    //free(reseau->poids.poidsArray);
+    reseau->poids.poidsArray=NULL;
+    reseau->poids.nbOfPoids = nbOfCouche-1;
+    reseau->poids.poidsArray = malloc(sizeof(Matrice) * nbOfCouche);
+    if(reseau->poids.poidsArray == NULL){
+        printf("Erreur lors de l'allocation de mémoire pour la liste des matrices (couches)");
+        return -1;
+    }
+    memset(reseau->poids.poidsArray, 0, sizeof(Matrice) * reseau->poids.nbOfPoids );
+    initMatriceNoMalloc(&(reseau->poids.poidsArray[0]), reseau->nbNeuronneParCoucheIntermediaire, reseau->nbNeuronneCoucheActivation);
+    for(int i = 1; i < reseau->poids.nbOfPoids -1; i++){
+        initMatriceNoMalloc(&(reseau->poids.poidsArray[i]), reseau->nbNeuronneParCoucheIntermediaire, reseau->nbNeuronneParCoucheIntermediaire);
+    }
+    initMatriceNoMalloc(&(reseau->poids.poidsArray[reseau->poids.nbOfPoids -1]), reseau->nbNeuronneCoucheResultat, reseau->nbNeuronneParCoucheIntermediaire);
+    return 0;
+}
+
+int initBiaisNoMalloc(Reseau *reseau, int nbOfCouche){
+    //free(reseau->biais.biaisArray);
+    reseau->biais.biaisArray = NULL;
+    reseau->biais.nbOfCouches = nbOfCouche; //WARNING: pas de biais pour la première couche
+    reseau->biais.biaisArray = malloc(sizeof(Matrice) * nbOfCouche);
+    if(reseau->biais.biaisArray == NULL){
+        printf("Erreur lors de l'allocation de mémoire pour la liste des matrices (couches)");
+        return -1;
+    }
+    memset(reseau->biais.biaisArray, 0, sizeof(Matrice) * nbOfCouche);
+    initMatriceNoMalloc(&(reseau->biais.biaisArray[0]), reseau->nbNeuronneCoucheActivation, 1);
+    for(int i = 1; i < nbOfCouche-1; i++){
+        initMatriceNoMalloc(&(reseau->biais.biaisArray[i]), reseau->nbNeuronneParCoucheIntermediaire, 1);
+    }
+    initMatriceNoMalloc(&(reseau->biais.biaisArray[nbOfCouche-1]), reseau->nbNeuronneCoucheResultat, 1);
+    return 0;
+}*/
+
+#pragma endregion sub_init_nomalloc
+
+
+#pragma region sub_init
+
+int initCouches(Reseau *reseau, int nbOfCouche){
+    //free(reseau->couches.MatriceList); //au cas ou...
+    
+    reseau->couches.MatriceList = NULL;
+    reseau->couches.nbOfCouches = nbOfCouche;
+
+    reseau->couches.MatriceList = malloc(sizeof(Matrice) * nbOfCouche);
+
+    if(reseau->couches.MatriceList == NULL){
+        printf("Erreur lors de l'allocation de mémoire pour la liste des matrices (couches)");
+        return -1;
+    }
+    memset(reseau->couches.MatriceList, 0, sizeof(Matrice) * nbOfCouche);
+
+
+    initMatrice(&(reseau->couches.MatriceList[0]), reseau->nbNeuronneCoucheActivation, 1);
 
     for(int i = 1; i < nbOfCouche-1; i++){
-        Matrice matriceInter;
-        initMatrice(&matriceInter, reseau->nbNeuronneParCoucheIntermediaire, 1);
-        matriceList[i] = matriceInter;
+        initMatrice(&(reseau->couches.MatriceList[i]), reseau->nbNeuronneParCoucheIntermediaire, 1);
     }
 
-    Matrice resultat;
-    initMatrice(&resultat, reseau->nbNeuronneCoucheResultat, 1);
-    matriceList[nbOfCouche-1] = resultat;
+    initMatrice(&(reseau->couches.MatriceList[nbOfCouche-1]), reseau->nbNeuronneCoucheResultat, 1);
 
-    couches.MatriceList = matriceList;
-    reseau->couches = couches;
     return 0;
 }
 
 int initPoids(Reseau *reseau, int nbOfCouche){
-    Poids poids;
-    poids.nbOfPoids = nbOfCouche-1; //IL Y A TOUJOURS UNE MATRICE EN MOINS
+    //free(reseau->poids.poidsArray);
+
+    reseau->poids.poidsArray=NULL;
+    reseau->poids.nbOfPoids = nbOfCouche-1;
     
-    Matrice *matriceList = NULL;
-    matriceList = malloc(sizeof(Matrice) * poids.nbOfPoids);
-    if(matriceList == NULL){
+    reseau->poids.poidsArray = malloc(sizeof(Matrice) * nbOfCouche);
+    if(reseau->poids.poidsArray == NULL){
         printf("Erreur lors de l'allocation de mémoire pour la liste des matrices (couches)");
         return -1;
     }
-    memset(matriceList, 0, sizeof(Matrice) * poids.nbOfPoids);
+    memset(reseau->poids.poidsArray, 0, sizeof(Matrice) * reseau->poids.nbOfPoids );
 
-    Matrice activation;
-    initMatrice(&activation, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbNeuronneCoucheActivation);
-    matriceList[0] = activation;
+    initMatrice(&(reseau->poids.poidsArray[0]), reseau->nbNeuronneParCoucheIntermediaire, reseau->nbNeuronneCoucheActivation);
 
-    for(int i = 1; i < poids.nbOfPoids-1; i++){
-        printf("on init %d\n",i)
-;        Matrice matriceInter;
-        initMatrice(&matriceInter, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbNeuronneParCoucheIntermediaire);
-        matriceList[i] = matriceInter;
+    for(int i = 1; i < reseau->poids.nbOfPoids -1; i++){
+        initMatrice(&(reseau->poids.poidsArray[i]), reseau->nbNeuronneParCoucheIntermediaire, reseau->nbNeuronneParCoucheIntermediaire);
     }
 
-    Matrice resultat;
-    initMatrice(&resultat, reseau->nbNeuronneCoucheResultat, reseau->nbNeuronneParCoucheIntermediaire);
-    matriceList[poids.nbOfPoids-1] = resultat;
+    initMatrice(&(reseau->poids.poidsArray[reseau->poids.nbOfPoids -1]), reseau->nbNeuronneCoucheResultat, reseau->nbNeuronneParCoucheIntermediaire);
     
-    poids.poidsArray = matriceList;
-    reseau->poids = poids;
     return 0;
 }
 
 int initBiais(Reseau *reseau, int nbOfCouche){
-    Biais biais;
-    biais.nbOfCouches = nbOfCouche; //WARNING: pas de biais pour la première couche
+    //free(reseau->biais.biaisArray);
 
+    reseau->biais.biaisArray = NULL;
+    reseau->biais.nbOfCouches = nbOfCouche; //WARNING: pas de biais pour la première couche
 
-    Matrice *matriceList = NULL;
-    matriceList = malloc(sizeof(Matrice) * nbOfCouche);
-    if(matriceList == NULL){
+    reseau->biais.biaisArray = malloc(sizeof(Matrice) * nbOfCouche);
+    if(reseau->biais.biaisArray == NULL){
         printf("Erreur lors de l'allocation de mémoire pour la liste des matrices (couches)");
         return -1;
     }
-    memset(matriceList, 0, sizeof(Matrice) * nbOfCouche);
+    memset(reseau->biais.biaisArray, 0, sizeof(Matrice) * nbOfCouche);
 
-    Matrice activation;
-    initMatrice(&activation, reseau->nbNeuronneCoucheActivation, 1);
-    matriceList[0] = activation;
+    initMatrice(&(reseau->biais.biaisArray[0]), reseau->nbNeuronneCoucheActivation, 1);
 
     for(int i = 1; i < nbOfCouche-1; i++){
-        Matrice matriceInter;
-        initMatrice(&matriceInter, reseau->nbNeuronneParCoucheIntermediaire, 1);
-        matriceList[i] = matriceInter;
+        initMatrice(&(reseau->biais.biaisArray[i]), reseau->nbNeuronneParCoucheIntermediaire, 1);
     }
 
-    Matrice resultat;
-    initMatrice(&resultat, reseau->nbNeuronneCoucheResultat, 1);
-    matriceList[nbOfCouche-1] = resultat;
-
-    biais.biaisArray = matriceList;
-    reseau->biais = biais;
+    initMatrice(&(reseau->biais.biaisArray[nbOfCouche-1]), reseau->nbNeuronneCoucheResultat, 1);
     return 0;
 }
 
@@ -236,22 +299,22 @@ float costTotalMoyen(Reseau *reseau, Matrice* *activationList, Matrice* *resulta
     return coutT/nbOfResultat;
 }
 
-float* createCloneOfValues(Reseau *reseau, float h, int index){
-    float* listPoidBiaisWithoutChange = NULL;
+int createCloneOfValues(Reseau *reseau, float h, int index){ //no leak inside
     float* listPoidBiais = NULL;
-    listPoidBiaisWithoutChange = poidAndBiaisIntolist(reseau);
     listPoidBiais = poidAndBiaisIntolist(reseau);
     listPoidBiais[index] += h;
-    registerListInReseau(reseau, listPoidBiais, reseau->nbNeuronneCoucheActivation, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbOfCouchesIntermediaire, reseau->nbNeuronneCoucheResultat);
+    registerListInReseau(reseau, listPoidBiais, reseau->nbNeuronneCoucheActivation, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbOfCouchesIntermediaire, reseau->nbNeuronneCoucheResultat); //memory leak here
     
     free(listPoidBiais);
 
-    return listPoidBiaisWithoutChange;
+    return 0;
 }
 
-float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){ //no leak inside
+float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){ //4kb leak 1/4
 
-    float* oldValue = createCloneOfValues(reseau, h, index);
+    float* oldValue = poidAndBiaisIntolist(reseau);
+    createCloneOfValues(reseau, h, index); //MEMORY LEAK HERE BUT NOT IN FUNCTION
+
     float coutPlusH = costTotalMoyen(reseau, activationList, resultatAttenduList, nbOfResultat);
 
     if(coutPlusH<0){
@@ -259,26 +322,27 @@ float derivateIndex(Reseau *reseau, float h, int index, Matrice* *activationList
         return -1;
     }
     
-
     registerListInReseau(reseau, oldValue, reseau->nbNeuronneCoucheActivation, reseau->nbNeuronneParCoucheIntermediaire, reseau->nbOfCouchesIntermediaire, reseau->nbNeuronneCoucheResultat);
 
     float cout = costTotalMoyen(reseau, activationList, resultatAttenduList, nbOfResultat);
+
+    free(oldValue);
+
     return (coutPlusH-cout)/h;
 }
 
-Matrice derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat){
-    const int size = getNbOfPoidsBiais(reseau);
 
-    Matrice gradient;
+//memory leak 16kb
+int derivateAllAndGetOppositOfGradient(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat, Matrice *gradient, int sizeOfGradient){
+
+    //printf("MEM 0: %ld\n", getMemoryUsage());
+    for(int i = 0; i<sizeOfGradient; i++){
+        gradient->valeurs[i] = -derivateIndex(reseau, h, i, activationList, resultatAttenduList, nbOfResultat); //MEMORY LEACK HERE TODO 16kb
+    }           
+    //printf("MEM 1: %ld\n", getMemoryUsage());
+
     
-    initMatrice(&gradient, size, 1);
-    
-    
-    for(int i = 0; i<size; i++){
-        gradient.valeurs[i] = -derivateIndex(reseau, h, i, activationList, resultatAttenduList, nbOfResultat); //MEMORY LEACK HERE !! TODO FIX
-    }
-    
-    return gradient;
+    return 0;
 }
 
 int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatAttenduList, int nbOfResultat, int nbOfTraining, float step){
@@ -287,14 +351,19 @@ int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatA
     const int NCI = reseau->nbNeuronneParCoucheIntermediaire;
     const int NCR = reseau->nbNeuronneCoucheResultat;
     const int nbCI = reseau->nbOfCouchesIntermediaire;
+
+        Matrice gradient;
+        const int size = getNbOfPoidsBiais(reseau);
+        initMatrice(&gradient, size, 1);
+   
     for(int trainingLoop = 0; trainingLoop < nbOfTraining; trainingLoop++){
         printf("Entrainement %d/%d.\n", trainingLoop+1, nbOfTraining);
+
+
         //on calcule le gradient que l'on multiplie par step
-        Matrice gradient;
-        #ifdef __linux__
-        printf("\nMemory usage before gradient: %ld", getMemoryUsage());
-        #endif
-        gradient = derivateAllAndGetOppositOfGradient(reseau, h, activationList, resultatAttenduList, nbOfResultat);         //LA FUITE DE MEMOIRE EST ICI
+        clearMatrice(&gradient);
+
+        derivateAllAndGetOppositOfGradient(reseau, h, activationList, resultatAttenduList, nbOfResultat, &gradient, size);         //LA FUITE DE MEMOIRE EST ICI
 
         multiplyByFloat(&gradient, step);
 
@@ -320,16 +389,15 @@ int train(Reseau *reseau, float h, Matrice* *activationList, Matrice* *resultatA
 
         //on enrengistre les nouveaux poids et biais
         registerListInReseau(reseau, result.valeurs, NCA, NCI, nbCI, NCR);
-        //on libère la RAM ! TODO: CA NE LIBERE RIEN d'après getMemoryUsage
-        disposeMatrice(&gradient);
+
+        //on libère la RAM ! 
+        //disposeMatrice(&gradient);
         disposeMatrice(&allValue);
         disposeMatrice(&result);
-        #ifdef __linux__
-        printf("\nMemory usage after free: %ld\n", getMemoryUsage());
-        #endif
 
     }
     printf("Fin de l'entrainement !\n");
+    return 0;
 }
 
 
@@ -361,7 +429,9 @@ int getNbOfPoidsBiais(Reseau *reseau){
 float* poidAndBiaisIntolist(Reseau *reseau){
     const int size = getNbOfPoidsBiais(reseau);
     float *list = NULL;
+
     list = malloc(sizeof(float) * (size));
+
     if(list == NULL){
         printf("Erreur lors de l'allocation de la memoire");
         return NULL;
@@ -383,94 +453,71 @@ float* poidAndBiaisIntolist(Reseau *reseau){
     return list;
 }
 
-float* slice(float *list, int min, int max){
+int slice(float *list, int min, int max, float *sliced){
+
     if(min > max){
         printf("Erreur impossible de couper la liste, min > max.\n");
-        return NULL;
+        return -1;
     }
-    float* sliced = NULL;
+
     int size = max - min;
-    sliced = malloc(sizeof(float) * size);
+
     for(int i = 0; i < size; i++){
         sliced[i] = list[min+i];
     }
-    return sliced;
+
+    return 0;
 }
 
-int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCoucheInter, int NCR){ //NCA = nombre de neuronne dans la couche d'activation...
+
+//MEMORY LEAK FINAL!!!!
+int registerListInReseau(Reseau *reseau, float *list, int NCA, int NCI, int nbCoucheInter, int NCR){ //NCA = nombre de neuronne dans la couche d'activation...    
+    /*printf("BEFORE\n");
+    printPoids(reseau); TODO REMOVE DEBUG
+    printf("\nLIST:\n");
+    print1DArray(list, getNbOfPoidsBiais(reseau));*/
+    const int NB_COUCHE_TOTAL = 2 + nbCoucheInter; //LA FUITE DE MEMOIRE EST DU A CA !!!!
+    
+    initReseauWithFree(reseau, nbCoucheInter, NCA, NCI, NCR);
+
+
     int index = 0;
-    Matrice poidsA;
-    initMatrice(&poidsA, NCI, NCA);
-    poidsA.valeurs = slice(list, 0, 1 + NCI*NCA); //1+ car la dernière est exclu
+    int indexPoids = 0;
+    int indexBiais = 0;
+    
+    slice(list, 0, NCI*NCA, reseau->poids.poidsArray[indexPoids].valeurs); //1+ car la dernière est exclu
+    indexPoids++;
     index += NCI*NCA;
 
-    Matrice biaisI1;
-    initMatrice(&biaisI1, NCI, 1);
-    biaisI1.valeurs = slice(list, index, index+NCI);
+    slice(list, index, index+NCI, reseau->biais.biaisArray[indexBiais].valeurs);
+
+    indexBiais++;
     index+=NCI;
 
-    Matrice *biaisInterList = NULL;
-    Matrice *poidsInterList = NULL;
     if(nbCoucheInter>1){
 
-        biaisInterList = malloc(sizeof(Matrice) * nbCoucheInter);
-        poidsInterList = malloc(sizeof(Matrice) * nbCoucheInter);
-        if(poidsInterList == NULL || biaisInterList == NULL){
-            printf("Erreur lors de l'allocation de mémoire pour la liste des matrices poids ou biais (in registerListInReseau).\n");
-            return -1;
-        }
-        memset(poidsInterList, 0, sizeof(Matrice) * nbCoucheInter);
-        memset(biaisInterList, 0, sizeof(Matrice) * nbCoucheInter);
-        for(int i = 0; i<nbCoucheInter; i++){
+        for(int i = 0; i<nbCoucheInter-1; i++){
             
-            Matrice tempP;
-            initMatrice(&tempP, NCI, NCI);
-            tempP.valeurs = slice(list, index, index+ NCI*NCI);
+            slice(list, index, index + NCI*NCI, reseau->poids.poidsArray[indexPoids].valeurs);
+            indexPoids++;
             index+=NCI*NCI;
-            poidsInterList[i] = tempP;
 
-            Matrice tempB;
-            initMatrice(&tempB, NCI, 1);
-            tempB.valeurs = slice(list, index, index+ NCI);
+            slice(list, index, index+ NCI, reseau->biais.biaisArray[indexBiais].valeurs);
+            indexBiais++;
             index += NCI;
-            biaisInterList[i] = tempB;
         }
     }
 
-    Matrice poidsFinal;
-    initMatrice(&poidsFinal, NCR, NCI);
-    poidsFinal.valeurs = slice(list, index, index+ NCR*NCI);
+    slice(list, index, index + NCR*NCI, reseau->poids.poidsArray[indexPoids].valeurs);
+    indexPoids++;
     index += NCR*NCI;
 
-    Matrice biaisFinal;
-    initMatrice(&biaisFinal, NCR, 1);
-    biaisFinal.valeurs = slice(list, index,index+ NCR);
+    slice(list, index,index + NCR, reseau->biais.biaisArray[indexBiais].valeurs);
+    indexBiais++;
     index += NCR;
-    
-    reseau->poids.poidsArray[0] = poidsA;
-    reseau->biais.biaisArray[1] = biaisI1;
 
-    if(nbCoucheInter>1){
-        for(int i = 1; i<nbCoucheInter; i++){
-            reseau->poids.poidsArray[i] = poidsInterList[i];
-            reseau->biais.biaisArray[i+1] = biaisInterList[i];
-        }
-    }
-    reseau->poids.poidsArray[reseau->poids.nbOfPoids-1] = poidsFinal;
-    reseau->biais.biaisArray[reseau->biais.nbOfCouches-1] = biaisFinal;
-
-    //free ram !
-    disposeMatrice(&poidsA);
-    disposeMatrice(&biaisI1);
-    for(int i = 0; i<nbCoucheInter; i++){
-            disposeMatrice(&poidsInterList[i]);
-            disposeMatrice(&biaisInterList[i]);
-    }
-    free(biaisInterList);
-    free(poidsInterList);
-    disposeMatrice(&poidsFinal);
-    disposeMatrice(&biaisFinal);
-
+    //printf("AFTER\n");
+    //printPoids(reseau);
     return 0;
 }
 

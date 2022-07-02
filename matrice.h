@@ -17,6 +17,7 @@ struct MatriceDim{
 
 int printMatrice(Matrice *matrice);
 int initMatrice(Matrice *matrice, int lignes, int colones);
+int clearMatrice(Matrice *matrice);
 
 int setMatriceValue(Matrice *matrice, int ligne, int colonne, float value);
 float getMatriceValue(Matrice *matrice, int ligne, int colonne);

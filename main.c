@@ -22,16 +22,18 @@ long getMemoryUsage(){
 }
 #endif
 
-#define EPSILON 0.0000001 //TODO CHANGE
+#define EPSILON 1e-10 //TODO CHANGE
 
 
 
 
 int main() {
     printf("Welcome !!\n");
+
     #ifdef __linux__
     printf("\nMemory usage: %ld", getMemoryUsage());
     #endif
+
     Reseau reseau;
 
     if(initReseau(&reseau, 2, 3, 2, 1) < 0){
@@ -39,6 +41,11 @@ int main() {
         return -1;
     }
     
+     
+    #ifdef __linux__
+    long memInit = getMemoryUsage();
+    printf("\nMemory initialized: %ld", memInit);
+    #endif
 
     printf("CHANGEMENT DE POIDS:\n");
     float newpoidsA[6] = {1,0.1,-10,0.10,0.111,111};
@@ -85,26 +92,35 @@ int main() {
     Matrice resultatAttendu;
     float resultatAttenduValue[1] = {0.333};
     initMatrice(&resultatAttendu, 1, 1);
-    Matrice* resultatAttenduList[1] = {&resultatAttendu};
+    resultatAttendu.valeurs = resultatAttenduValue;
+    Matrice resultatAttendu2;
+    float resultatAttenduValue2[1] = {0.99};
+    initMatrice(&resultatAttendu2, 1, 1);
+    resultatAttendu2.valeurs = resultatAttenduValue2;
+    Matrice* resultatAttenduList[2] = {&resultatAttendu, &resultatAttendu2};
     
     Matrice activation1;
     float activation1Array[3] = {0.1,0.8,0.25};
     initMatrice(&activation1, 3, 1);
     activation1.valeurs = activation1Array;
+    Matrice activation2;
+    float activation1Array2[3] = {0.9,0.4,0.99};
+    initMatrice(&activation2, 3, 1);
+    activation2.valeurs = activation1Array2;
+    Matrice* activationList[2] = {&activation1, &activation2};
 
-    Matrice* activationList[1] = {&activation1};
-
-    train(&reseau, EPSILON, activationList, resultatAttenduList, 1, 2, 0.001);
+    train(&reseau, EPSILON, activationList, resultatAttenduList, 2, 2, 0.1); //1000 -> coutAPRES 0.137770  10000 -> coutAPRES 0.145339  coutAPRES 0.159229 coutAPRES 0.001552
 
     printf("\n\nRESAU APRES TRAINING:\n");
-    //debugAll(&reseau);
+    debugAll(&reseau);
     printf("\n-----------\n");
 
 
     float coutAPRES = cost(&reseau, &Devine, &resultatAttenduDebug);
     printf("COUP AVANT %f, coutAPRES %f", coutAVANT, coutAPRES);
     #ifdef __linux__
-    printf("\nMemory usage: %ld", getMemoryUsage());
+    printf("\nMemory usage: %ld\n", getMemoryUsage());
+    printf("Difference: %d", getMemoryUsage()-memInit);
     #endif
     return 0;
 }
@@ -123,3 +139,56 @@ int debugAll(Reseau *reseau){
 
 //cls;gcc main.c function.c matrice.c ia.c -o main;./main
 //TODO BUG AVEC TROP DE BOUCLE + NAN
+
+
+
+/*
+Poids d'activation:
+0.999992 0.099993 -10.000003
+0.100000 0.111000 111.000000
+
+Poids Intermediaire num.1 :
+1.999954 1.999190
+2.000059 2.000653
+
+Poids des resultats:
+-4.998385 4.001602
+
+POIDS OK !
+
+Biais Intermediaire num.1 :
+0.000005
+0.000000
+
+Biais Intermediaire num.2 :
+-0.000084
+0.000000
+
+Biais des resultats:
+0.000000
+*/
+
+/*
+Poids d'activation:
+1.000000 0.100000 -10.000000
+0.100000 0.111000 111.000000
+
+Poids Intermediaire num.1 :
+1.999985 1.991953
+2.000000 2.006332
+
+Poids des resultats:
+-4.986604 4.013456
+
+POIDS OK !
+
+Biais Intermediaire num.1 :
+0.000000
+0.000000
+
+Biais Intermediaire num.2 :
+-0.000864
+0.000000
+
+Biais des resultats:
+0.000000*/

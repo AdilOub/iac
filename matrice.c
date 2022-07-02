@@ -22,6 +22,11 @@ int printMatrice(Matrice *matrice)
     return 0;
 }
 
+int clearMatrice(Matrice *matrice){
+    for(int i = 0; i< matrice->lignes*matrice->colones;i++){
+        matrice->valeurs[i] = 0;
+    }
+}
 
 int initMatrice(Matrice *matrice, int lignes, int colones)
 {
